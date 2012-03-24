@@ -27,7 +27,15 @@ class ReleasePlugin implements Plugin<Project> {
     String releaseRepo = "$project.gradle.gradleUserHomeDir/release-git-repository";
     String inversoftGitRepo = project.inversoftGitRepo
 
-    println inversoftGitRepo
+    if (inversoftGitRepo == null || inversoftGitRepo.length() == 0) {
+      throw new GradleException("""
+You must define 'inversoftGitRepo in your ~/.gradle/gradle.properties
+that references the URL for the inversoft ivy repository.
+
+Ex:
+inversoftGitRepo=git@git.inversoft.com:foo.git
+""")
+    }
 
     File releaseGitDir = new File(releaseRepo)
 
