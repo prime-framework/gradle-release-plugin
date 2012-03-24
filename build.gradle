@@ -7,6 +7,7 @@ description = "The Release Plugin"
 apply plugin: "groovy"
 apply plugin: "idea"
 apply plugin: "integration"
+apply plugin: "release"
 
 sourceCompatibility = 1.6
 
@@ -14,13 +15,17 @@ sourceCompatibility = 1.6
 buildscript {
   repositories {
     ivy {
+      name "inversoftPublic"
+      ivyPattern "http://hawking.inversoft.com/repository/public/[organisation]/[module]/[revision]/ivy.xml"
+      artifactPattern "http://hawking.inversoft.com/repository/public/[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]"
+    }
+    ivy {
       url "${project.gradle.gradleUserHomeDir}/integration-cache"
     }
   }
   dependencies {
-    classpath(
-      "org.primeframework.gradle:gradle-integration-plugin:0.1",
-    )
+    classpath "org.primeframework.gradle:gradle-integration-plugin:0.1",
+      "org.primeframework.gradle:gradle-release-plugin:0.1-SNAPSHOT"
   }
 }
 
@@ -30,6 +35,11 @@ repositories {
     name "inversoftPublic"
     ivyPattern "http://hawking.inversoft.com/repository/public/[organisation]/[module]/[revision]/ivy.xml"
     artifactPattern "http://hawking.inversoft.com/repository/public/[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]"
+  }
+  ivy {
+    name "releaseRepository"
+    ivyPattern "file:///$releasePlugin.inversoftIvyGitRepo/repository/public/[organisation]/[module]/[revision]/ivy.xml"
+    artifactPattern "file:///$releasePlugin.inversoftIvyGitRepo/repository/public/[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]"
   }
 }
 
