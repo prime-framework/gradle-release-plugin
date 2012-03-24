@@ -25,7 +25,10 @@ class ReleasePlugin implements Plugin<Project> {
 
     // set the repository vars
     String releaseRepo = "$project.gradle.gradleUserHomeDir/release-git-repository";
-    String privateGitRepo = "git@git.inversoft.com:repositories/ivy.git"
+    String inversoftGitRepo = project.inversoftGitRepo
+
+    println inversoftGitRepo
+
     File releaseGitDir = new File(releaseRepo)
 
     // do some preparation when the task graph is ready
@@ -73,12 +76,12 @@ class ReleasePlugin implements Plugin<Project> {
 
     /**
      * Makes some preparations prior to performing the release:
-     * 1.  release directory isn't dirty (no changes)
-     * 2.  Everything that has been committed has been pushed
-     * 3.  everything in the release directory has been pulled down from the git remote
-     * 4.  that, in fact, you are executing this from a git project
-     * 5.  that a tag for the version you are releasing hasn't yet been pushed
-     * 6.  The project version and it's dependency versions don't depend on any integration
+     *  1.  release directory isn't dirty (no changes)
+     *  2.  Everything that has been committed has been pushed
+     *  3.  everything in the release directory has been pulled down from the git remote
+     *  4.  that, in fact, you are executing this from a git project
+     *  5.  that a tag for the version you are releasing hasn't yet been pushed
+     *  6.  The project version and it's dependency versions don't depend on any integration
      * builds (versions with SNAPSHOT in it)
      *
      */
@@ -134,11 +137,11 @@ class ReleasePlugin implements Plugin<Project> {
     project.task("c-prePublish", dependsOn: "sourceJar") << {
 
       if (!releaseGitDir.exists()) {
-        println "Cloning $privateGitRepo for the first time.  This could take a while..."
-        def proc = "git clone $privateGitRepo $releaseRepo".execute()
+        println "Cloning $inversoftGitRepo for the first time.  This could take a while..."
+        def proc = "git clone $inversoftGitRepo $releaseRepo".execute()
         proc.waitFor()
       } else {
-        println "Pulling $privateGitRepo to synchronize local to remote..."
+        println "Pulling $inversoftGitRepo to synchronize local to remote..."
         def proc = "git pull".execute(null, releaseGitDir);
         proc.waitForOrKill(20000)
         if (proc.exitValue() != 0) {
