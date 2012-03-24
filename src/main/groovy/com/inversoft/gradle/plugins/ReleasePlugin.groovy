@@ -34,6 +34,17 @@ class ReleasePlugin implements Plugin<Project> {
         // set the project status to release
         project.status = "release"
 
+        def privateOrPublic = project.releasePlugin.publicRepo ? "public" : "private"
+        println "Releasing to the $privateOrPublic Inversoft Apache Ivy repository"
+
+        project.repositories {
+          ivy {
+            name "releaseRepository"
+            ivyPattern "file:///$project.releasePlugin.inversoftIvyGitRepo/repository/$privateOrPublic/[organisation]/[module]/[revision]/ivy.xml"
+            artifactPattern "file:///$project.releasePlugin.inversoftIvyGitRepo/repository/$privateOrPublic/[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]"
+          }
+        }
+
         // set the upload archives repository
         project.uploadArchives {
           repositories {
@@ -343,5 +354,10 @@ the integration designator 'SNAPSHOT'""")
      * This is set when the plugin first gets applied in your project
      */
     def inversoftIvyGitRepo
+
+    /**
+     * Set to false if this you're releasing to the private inversoft repository
+     */
+    boolean publicRepo = true
   }
 }
