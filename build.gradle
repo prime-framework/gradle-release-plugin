@@ -1,0 +1,39 @@
+// Project info
+group = "org.primeframework"
+version = "0.1"
+description = "The Release Plugin"
+
+// Plugins
+apply plugin: "groovy"
+apply plugin: "idea"
+apply plugin: "integration"
+
+sourceCompatibility = 1.6
+
+// Build script config
+buildscript {
+  repositories {
+    ivy {
+      url "${project.gradle.gradleUserHomeDir}/integration-cache"
+    }
+  }
+  dependencies {
+    classpath(
+      "org.primeframework.gradle:gradle-integration-plugin:0.1",
+    )
+  }
+}
+
+// Dependencies
+repositories {
+  ivy {
+    name "inversoftPublic"
+    ivyPattern "http://hawking.inversoft.com/repository/public/[organisation]/[module]/[revision]/ivy.xml"
+    artifactPattern "http://hawking.inversoft.com/repository/public/[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]"
+  }
+}
+
+dependencies {
+  compile gradleApi()
+  groovy localGroovy()
+}
