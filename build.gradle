@@ -1,5 +1,5 @@
 // Project info
-group = "org.primeframework"
+group = "org.primeframework.gradle"
 version = "0.1"
 description = "The Release Plugin"
 
