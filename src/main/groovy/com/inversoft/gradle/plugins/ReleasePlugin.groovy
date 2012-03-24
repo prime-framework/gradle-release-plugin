@@ -32,7 +32,7 @@ class ReleasePlugin implements Plugin<Project> {
     } catch (Exception e) {
       throw new GradleException("""
 You must define the variable 'inversoftGitRepo' in the ~/.gradle/gradle.properties file
-and point it to the git Apahe Ivy Git repository.
+and point it to the Inversoft Apahe Ivy Git repository.
 
 Ex:
 inversoftGitRepo=git@git.inversoft.com:foo.git
