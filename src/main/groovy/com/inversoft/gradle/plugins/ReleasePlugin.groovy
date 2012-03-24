@@ -15,31 +15,17 @@ class ReleasePlugin implements Plugin<Project> {
 
   def void apply(Project project) {
 
+    // configuration for this plugin
+    project.extensions.add("releasePlugin", new ReleasePluginConfiguration())
+    project.extensions.getByType(ReleasePluginConfiguration.class).inversoftIvyGitRepo = "$project.gradle.gradleUserHomeDir/inversoft-ivy-git-repo"
+
     // create a digest configuration.  This is where the sha1 and md5 artifacts go
     project.configurations.add("digest") { configuration ->
       configuration.visible = false
     }
 
-    // configuration for this plugin
-    project.extensions.add("releaseConfig", new ReleaseGitPluginConfiguration())
-
-    // set the repository vars
-    String releaseRepo = "$project.gradle.gradleUserHomeDir/release-git-repository";
-    String inversoftGitRepo
-
-    try {
-      inversoftGitRepo = project.inversoftGitRepo
-    } catch (Exception e) {
-      throw new GradleException("""
-You must define the variable 'inversoftGitRepo' in the ~/.gradle/gradle.properties file
-and point it to the Inversoft Apahe Ivy Git repository.
-
-Ex:
-inversoftGitRepo=git@git.inversoft.com:foo.git
-""")
-    }
-
-    File releaseGitDir = new File(releaseRepo)
+    File releaseGitDir = new File(project.releasePlugin.inversoftIvyGitRepo)
+    String inversoftGitRepo = "git@git.inversoft.com:repositories/ivy.git"
 
     // do some preparation when the task graph is ready
     project.gradle.taskGraph.whenReady { taskGraph ->
@@ -148,7 +134,7 @@ inversoftGitRepo=git@git.inversoft.com:foo.git
 
       if (!releaseGitDir.exists()) {
         println "Cloning $inversoftGitRepo for the first time.  This could take a while..."
-        def proc = "git clone $inversoftGitRepo $releaseRepo".execute()
+        def proc = "git clone $inversoftGitRepo $project.releasePlugin.inversoftIvyGitRepo".execute()
         proc.waitFor()
       } else {
         println "Pulling $inversoftGitRepo to synchronize local to remote..."
@@ -257,7 +243,7 @@ the integration designator 'SNAPSHOT'""")
   void addChecksums(Project project) {
 
     // now iterate through each 'configuration' configured in the release config
-    project.extensions.getByType(ReleaseGitPluginConfiguration).checksumConfigurations.each { configuration ->
+    project.releasePlugin.checksumConfigurations.each { configuration ->
       List<CheckSum> checksums = []
 
       project.configurations.getByName(configuration).artifacts.each { artifact ->
@@ -342,13 +328,20 @@ the integration designator 'SNAPSHOT'""")
    * If you had additional configurations that you're uploading,
    * you can add to this list in your project as follows:
    *
-   * project.releaseConfig.checksumConfiguration.add "zips"
+   * project.releasePlugin.checksumConfiguration.add "zips"
    */
-  class ReleaseGitPluginConfiguration {
+  class ReleasePluginConfiguration {
 
     /**
      * sha1 and md5 files will be generated for each configuration defined in this list
      */
     def checksumConfigurations = ["archives", "sources"]
+
+    /**
+     * Directory on disk where you want to store the inversoft apachy ivy git repository
+     *
+     * This is set when the plugin first gets applied in your project
+     */
+    def inversoftIvyGitRepo
   }
 }
