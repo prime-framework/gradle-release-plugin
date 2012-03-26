@@ -193,7 +193,7 @@ class ReleasePlugin implements Plugin<Project> {
      * gradle dependsOn is ordered alphabetically so alpha letters have been
      * prepended to the front of the task names to force gradle ordering
      */
-    project.task("release", dependsOn: ["a-prepareRelease", "build", "c-prePublish", "upload"]) << {
+    project.task("release", dependsOn: ["a-prepareRelease", "build", "c-prePublish", "upload", "z-publish", "zz-tag"]) << {
       // stub. defers to depends on set
     }
   }
