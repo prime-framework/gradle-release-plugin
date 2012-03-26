@@ -1,4 +1,4 @@
-package com.inversoft.gradle.plugins
+package org.primeframework.gradle.plugins
 
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
