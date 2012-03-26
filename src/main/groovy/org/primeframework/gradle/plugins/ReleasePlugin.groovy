@@ -131,11 +131,13 @@ class ReleasePlugin implements Plugin<Project> {
      * Tags this git repository with the version
      */
     project.task("zz-tag") << {
-      println "Creating tag $project.version"
-      def proc = ["git", "tag", "-a", project.version, "-m", "Tagging $project.version"].execute()
-      proc.waitFor()
-      proc = "git push --tags".execute()
-      proc.waitFor()
+      if (!project.releasePlugin.testRelease) {
+        println "Creating tag $project.version"
+        def proc = ["git", "tag", "-a", project.version, "-m", "Tagging $project.version"].execute()
+        proc.waitFor()
+        proc = "git push --tags".execute()
+        proc.waitFor()
+      }
     }
 
     /**
@@ -165,18 +167,20 @@ class ReleasePlugin implements Plugin<Project> {
      * Performs the git commands to add, commit, and push the new artifacts to the release repository
      */
     project.task("z-publish") << {
-      println "Publishing artifacts to remote repository..."
-      def addProc = "git add .".execute(null, releaseGitDir)
-      addProc.waitFor()
-      def commitProc = ["git", "commit", "-a", "-m", "Publishing $project.name $project.version"].execute(null, releaseGitDir)
-      commitProc.waitForOrKill(20000)
-      if (commitProc.exitValue() != 0) {
-        throw new GradleException("Unable to commit to remote git repository. Git output is:\n\n$proc.text")
-      }
-      def pushProc = "git push origin master".execute(null, releaseGitDir)
-      pushProc.waitForOrKill(20000)
-      if (pushProc.exitValue() != 0) {
-        throw new GradleException("Unable to push to remote Git repository. Git output is:\n\n$proc.text")
+      if (!project.releasePlugin.testRelease) {
+        println "Publishing artifacts to remote repository..."
+        def addProc = "git add .".execute(null, releaseGitDir)
+        addProc.waitFor()
+        def commitProc = ["git", "commit", "-a", "-m", "Publishing $project.name $project.version"].execute(null, releaseGitDir)
+        commitProc.waitForOrKill(20000)
+        if (commitProc.exitValue() != 0) {
+          throw new GradleException("Unable to commit to remote git repository. Git output is:\n\n$proc.text")
+        }
+        def pushProc = "git push origin master".execute(null, releaseGitDir)
+        pushProc.waitForOrKill(20000)
+        if (pushProc.exitValue() != 0) {
+          throw new GradleException("Unable to push to remote Git repository. Git output is:\n\n$proc.text")
+        }
       }
     }
 
@@ -240,16 +244,6 @@ the integration designator 'SNAPSHOT'""")
 
   /**
    * Adds a md5 and sha1 checksum for each configuration defined in the release config
-   *
-   * Something strange is going on below.  When I create md5 and sha1 checksums for sources, I'm explicitly adding
-   * the checksum files to the 'digest' configurations.  For some reason, though, the checksums
-   * getting add to both the archive and digest configurations for source files.  This is evident in the ivy.xml
-   * as exampled below:
-   *
-   * <artifact name="plugin-tomcat" type="source" ext="jar.sha1" conf="archives,digest"/>
-   * <artifact name="plugin-tomcat" type="source" ext="jar.md5" conf="archives,digest"/>
-   *
-   * Notice the 'conf' has 'archives,digest'.  I'm not sure what impact this has on gradle but I'm hoping very little
    *
    * @param project the Project object
    */
@@ -362,6 +356,11 @@ the integration designator 'SNAPSHOT'""")
      * Set to true if you want to release from a dirty directory
      */
     boolean releaseDirty = false
+
+    /**
+     * If true, the release plugin will not perform the publish and tag steps
+     */
+    boolean testRelease = false
 
     /**
      * adds the checksum files to the digest configuration if true.  defaults to true
