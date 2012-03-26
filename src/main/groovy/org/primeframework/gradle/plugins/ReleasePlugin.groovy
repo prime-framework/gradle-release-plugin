@@ -116,7 +116,7 @@ class ReleasePlugin implements Plugin<Project> {
 
       // Check for local modifications
       status = "git status --porcelain".execute().text.trim()
-      if (!status.isEmpty()) {
+      if (!status.isEmpty() && !project.releasePlugin.releaseDirty) {
         throw new GradleException("Cannot release from a dirty directory. Git status output is:\n\n" + status)
       }
 
@@ -156,7 +156,9 @@ class ReleasePlugin implements Plugin<Project> {
         }
       }
 
-      addChecksums(project)
+      if (project.releasePlugin.addChecksums) {
+        addChecksums(project)
+      }
     }
 
     /**
@@ -191,7 +193,7 @@ class ReleasePlugin implements Plugin<Project> {
      * gradle dependsOn is ordered alphabetically so alpha letters have been
      * prepended to the front of the task names to force gradle ordering
      */
-    project.task("release", dependsOn: ["a-prepareRelease", "build", "c-prePublish", "upload", "z-publish", "zz-tag"]) << {
+    project.task("release", dependsOn: ["a-prepareRelease", "build", "c-prePublish", "upload"]) << {
       // stub. defers to depends on set
     }
   }
@@ -254,14 +256,15 @@ the integration designator 'SNAPSHOT'""")
   void addChecksums(Project project) {
 
     // now iterate through each 'configuration' configured in the release config
-    project.releasePlugin.checksumConfigurations.each { configuration ->
+    def checksumConfigurations = ["archives", "sources"]
+    checksumConfigurations.each { configuration ->
       List<CheckSum> checksums = []
 
       project.configurations.getByName(configuration).artifacts.each { artifact ->
-        project.ant.checksum(file: artifact.file, algorithm: "sha1", todir: "$project.buildDir/libs")
-        project.ant.checksum(file: artifact.file, algorithm: "md5", todir: "$project.buildDir/libs")
-        checksums.add(new CheckSum(artifact.name, "${artifact.extension}.sha1", artifact.type, new File("$project.buildDir/libs/${artifact.file.name}.sha1")))
-        checksums.add(new CheckSum(artifact.name, "${artifact.extension}.md5", artifact.type, new File("$project.buildDir/libs/${artifact.file.name}.md5")))
+        project.ant.checksum(file: artifact.file, algorithm: "sha1", todir: "$project.buildDir/digest")
+        project.ant.checksum(file: artifact.file, algorithm: "md5", todir: "$project.buildDir/digest")
+        checksums.add(new CheckSum(artifact.name, "${artifact.extension}.sha1", artifact.type, new File("$project.buildDir/digest/${artifact.file.name}.sha1")))
+        checksums.add(new CheckSum(artifact.name, "${artifact.extension}.md5", artifact.type, new File("$project.buildDir/digest/${artifact.file.name}.md5")))
       }
 
       checksums.each { checksum ->
@@ -344,11 +347,6 @@ the integration designator 'SNAPSHOT'""")
   class ReleasePluginConfiguration {
 
     /**
-     * sha1 and md5 files will be generated for each configuration defined in this list
-     */
-    def checksumConfigurations = ["archives", "sources"]
-
-    /**
      * Directory on disk where you want to store the inversoft apachy ivy git repository
      *
      * This is set when the plugin first gets applied in your project
@@ -359,5 +357,15 @@ the integration designator 'SNAPSHOT'""")
      * Set to false if this you're releasing to the private inversoft repository
      */
     boolean publicRepo = true
+
+    /**
+     * Set to true if you want to release from a dirty directory
+     */
+    boolean releaseDirty = false
+
+    /**
+     * adds the checksum files to the digest configuration if true.  defaults to true
+     */
+    boolean addChecksums = true
   }
 }
