@@ -25,7 +25,7 @@ buildscript {
   }
   dependencies {
     classpath "org.primeframework.gradle:gradle-init-plugin:0.1",
-      "org.primeframework.gradle:gradle-release-plugin:0.5-SNAPSHOT"
+      "org.primeframework.gradle:gradle-release-plugin:0.5"
   }
 }
 
