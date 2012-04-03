@@ -15,6 +15,39 @@ class ReleasePlugin implements Plugin<Project> {
 
   def void apply(Project project) {
 
+    // adds the integration repository to the list of available repositories
+    project.repositories {
+      ivy {
+        name = "integrationRepository"
+        url "${project.gradle.gradleUserHomeDir}/integration-cache"
+      }
+    }
+
+    // do some prep work when running an integration release
+    project.gradle.taskGraph.whenReady { taskGraph ->
+      if (taskGraph.hasTask(":int")) {
+
+        def integrationID = "-SNAPSHOT"
+
+        project.version = project.version + integrationID
+        project.status = "integration"
+
+        // adds the integration repository to the uploadArchives task
+        project.uploadArchives {
+          repositories {
+            add project.repositories.integrationRepository
+          }
+        }
+
+        // adds the integration repository to the uploadSources task
+        project.uploadSources {
+          repositories {
+            add project.repositories.integrationRepository
+          }
+        }
+      }
+    }
+
     // configuration for this plugin
     project.extensions.add("releasePlugin", new ReleasePluginConfiguration())
     project.extensions.getByType(ReleasePluginConfiguration.class).inversoftIvyGitRepo = "$project.gradle.gradleUserHomeDir/inversoft-ivy-git-repo"
@@ -27,7 +60,7 @@ class ReleasePlugin implements Plugin<Project> {
     File releaseGitDir = new File(project.releasePlugin.inversoftIvyGitRepo)
     String inversoftGitRepo = "git@git.inversoft.com:repositories/ivy.git"
 
-    // do some preparation when the task graph is ready
+    // do some prep work when running a release
     project.gradle.taskGraph.whenReady { taskGraph ->
       if (taskGraph.hasTask(":release")) {
 
@@ -79,6 +112,10 @@ class ReleasePlugin implements Plugin<Project> {
           }
         }
       }
+    }
+
+    project.task("int", dependsOn: ["sourceJar", "build", "uploadArchives", "uploadSources"]) {
+      // stub.  all magic happens in the depends on calls
     }
 
     /**
@@ -152,7 +189,7 @@ class ReleasePlugin implements Plugin<Project> {
       } else {
         println "Pulling $inversoftGitRepo to synchronize local to remote..."
         def proc = "git pull".execute(null, releaseGitDir);
-        proc.waitForOrKill(20000)
+        proc.waitForOrKill(30000)
         if (proc.exitValue() != 0) {
           throw new GradleException("Unable to pull from remote Git repository. Git output is:\n\n$proc.text")
         }
