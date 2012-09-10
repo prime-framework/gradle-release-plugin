@@ -45,6 +45,8 @@ class ReleasePlugin implements Plugin<Project> {
             add project.repositories.integrationRepository
           }
         }
+
+        println "\nReleasing version [${project.version}] to local integration cache [${project.repositories.integrationRepository.url}]\n"
       }
     }
 
@@ -115,7 +117,7 @@ class ReleasePlugin implements Plugin<Project> {
     }
 
     project.task("int", dependsOn: ["sourceJar", "build", "uploadArchives", "uploadSources"]) {
-      // stub.  all magic happens in the depends on calls
+
     }
 
     /**
