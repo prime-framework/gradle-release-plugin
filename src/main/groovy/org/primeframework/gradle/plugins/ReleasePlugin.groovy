@@ -116,7 +116,7 @@ class ReleasePlugin implements Plugin<Project> {
       }
     }
 
-    project.task("int", dependsOn: ["sourceJar", "build", "uploadArchives", "uploadSources"]) {
+    project.task("int", dependsOn: ["sourceJar", "build", "upload"]) {
 
     }
 
