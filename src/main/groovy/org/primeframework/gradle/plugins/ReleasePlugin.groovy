@@ -46,7 +46,7 @@ class ReleasePlugin implements Plugin<Project> {
           }
         }
 
-        println "\nReleasing version [${project.name}-${project.version}] to local integration cache [${project.repositories.integrationRepository.url}]\n"
+        println "\nReleasing ${project.name}-${project.version} to local integration cache: ${project.repositories.integrationRepository.url}\n"
       }
     }
 
